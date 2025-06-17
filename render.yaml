@@ -5,5 +5,5 @@ services:
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn predictsite.wsgi:application"
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.8
+      - key:  PYTHON_VERSION
+        value: 3.11.8 
