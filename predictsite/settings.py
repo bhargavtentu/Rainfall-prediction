@@ -6,9 +6,9 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-your-secret-key-here'  # Replace with a secure key
+SECRET_KEY = config("SECRET_KEY")  # Replace with a secure key
 DEBUG = config("DEBUG", default=False, cast=bool)
-ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['predictsite.onrender.com']
 
 
 

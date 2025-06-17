@@ -1,9 +1,15 @@
 services:
   - type: web
-    name: rainfall-prediction
+    name: predictsite
     env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn predictsite.wsgi:application"
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn predictsite.wsgi
     envVars:
-      - key:  PYTHON_VERSION
-        value: 3.11.8 
+      - key: DEBUG
+        value: false
+      - key: SECRET_KEY
+        value: python
+      - key: ALLOWED_HOSTS
+        value: predictsite.onrender.com
+      - key: DATABASE_URL
+        value: sqlite:///db.sqlite3

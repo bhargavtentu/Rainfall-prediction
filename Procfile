@@ -1,1 +1,1 @@
-web: gunicorn predictsite.wsgi:application
+web: gunicorn predictsite.wsgi
