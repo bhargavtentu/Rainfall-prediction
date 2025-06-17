@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 p-4">
+        <div class="container mx-auto">
+            <a href="{% url 'index' %}" class="text-white text-xl font-bold">Weather Forecast App</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto mt-8">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Microsoft Copilot Chat Iframe -->
+    <iframe 
+        src="https://copilotstudio.microsoft.com/environments/441040f4-3d01-e21a-8410-79808681d315/bots/cr7d8_rainfallPrediction/webchat?__version__=2" 
+        style="position: fixed; bottom: 20px; right: 20px; width: 400px; height: 600px; border: none; z-index: 1000;">
+    </iframe>
+</body>
+</html>

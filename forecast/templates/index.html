@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-4">Weather Forecast</h1>
+    <p class="mb-4">Enter a time range like 'next week', 'month', or 'year' to get the weather forecast.</p>
+    <form method="POST" action="{% url 'forecast' %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="query" class="block text-gray-700">Query:</label>
+            <input type="text" id="query" name="query" class="w-full p-2 border rounded" placeholder="e.g., next week">
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Get Forecast</button>
+    </form>
+</div>
+{% endblock %}
