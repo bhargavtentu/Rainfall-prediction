@@ -1,39 +1,18 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Forecast App</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-</head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
 
-    <!-- Navbar -->
-    <nav class="bg-blue-600 p-4 shadow-md">
-        <div class="container mx-auto">
-            <a href="{% url 'index' %}" class="text-white text-2xl font-semibold">
-                Weather Forecast App
-            </a>
-        </div>
-    </nav>
+{% block content %}
+<div class="text-center mt-10">
+    <h1 class="text-3xl font-bold mb-6 text-blue-700">Welcome to the Weather Forecast App</h1>
+    <p class="text-lg text-gray-700">Get accurate and up-to-date weather predictions for your location using AI-powered forecasting models.</p>
 
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto mt-8 px-4">
-        {% block content %}
-        {% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-blue-600 text-white text-center py-4">
-        &copy; {{ year }} Weather Forecast. All rights reserved.
-    </footer>
-
-
-</body>
-</html>
+    <div class="mt-10 flex justify-center gap-6">
+        <a href="{% url 'predict' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
+            Predict Rainfall
+        </a>
+        <a href="{% url 'about' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition">
+            About This App
+        </a>
+    </div>
+</div>
+{% endblock %}
