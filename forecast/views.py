@@ -46,13 +46,6 @@ from .utils.utils import predict_weather
 @csrf_exempt
 def forecast_api(request):
     if request.method == 'POST':
-        # Check for Bearer Token Authorization
-        auth_header = request.headers.get('Authorization', '')
-        expected_token = 'Bearer abc123xyz'  # Set your custom token
-
-        if auth_header != expected_token:
-            return JsonResponse({'error': 'Unauthorized'}, status=401)
-
         try:
             data = json.loads(request.body)
             query = data.get('query', '')
@@ -79,4 +72,14 @@ def forecast_api(request):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
+    return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+@csrf_exempt
+def test_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            return JsonResponse({"received": data}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Only POST allowed"}, status=405)
