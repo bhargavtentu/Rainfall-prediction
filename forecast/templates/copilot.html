@@ -1,18 +1,46 @@
-{% extends "base.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast App</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
 
-{% block content %}
-<div class="text-center mt-10">
-    <h1 class="text-3xl font-bold mb-6 text-blue-700">Welcome to the Weather Forecast App</h1>
-    <p class="text-lg text-gray-700">Get accurate and up-to-date weather predictions for your location using AI-powered forecasting models.</p>
+    <!-- Navbar -->
+    <nav class="bg-blue-600 p-4 shadow-md">
+        <div class="container mx-auto">
+            <a href="{% url 'index' %}" class="text-white text-2xl font-semibold">
+                Weather Forecast App
+            </a>
+        </div>
+    </nav>
 
-    <div class="mt-10 flex justify-center gap-6">
-        <a href="{% url 'predict' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
-            Predict Rainfall
-        </a>
-        <a href="{% url 'about' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition">
-            About This App
-        </a>
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto mt-8 px-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-blue-600 text-white text-center py-4">
+        &copy; {{ year }} Weather Forecast. All rights reserved.
+    </footer>
+
+    <!-- Microsoft Copilot Chat Iframe (Smaller Version) -->
+    <div class="fixed bottom-3 right-4 w-[300px] h-[400px] shadow-lg border border-gray-300 rounded-lg overflow-hidden z-50">
+         <iframe 
+    src="https://copilotstudio.microsoft.com/environments/441040f4-3d01-e21a-8410-79808681d315/bots/cr7d8_testAgent/webchat?__version__=2" 
+    style="position: fixed; bottom: 20px; right: 20px; width: 280px; height: 400px; border: none; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.2); z-index: 1000;">
+   </iframe>
     </div>
-</div>
-{% endblock %}
+
+</body>
+</html>
