@@ -80,3 +80,39 @@ def forecast_api(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Only POST allowed"}, status=405)
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import UserInfo
+from.serializers import UserInfoSerializer
+
+
+@api_view(['POST'])
+def add_user(request):
+    serializer = UserInfoSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "User info saved successfully", "data": serializer.data}, status=201)
+    return Response(serializer.errors, status=400)
+
+@api_view(['GET'])
+def get_users(request):
+    # Authorization check
+    auth_header = request.headers.get('Authorization', '')
+    expected_token = 'Bearer abc123xyz'
+
+    if auth_header != expected_token:
+        return Response({'error': 'Unauthorized'}, status=401)
+
+    name = request.GET.get('name', None)
+    if name:
+        users = UserInfo.objects.filter(name__iexact=name)
+    else:
+        users = UserInfo.objects.all()
+
+    if not users.exists():
+        return Response({'message': 'No user(s) found'}, status=404)
+
+    serializer = UserInfoSerializer(users, many=True)
+    return Response(serializer.data)
+
+
