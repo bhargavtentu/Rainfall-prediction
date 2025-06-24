@@ -7,3 +7,8 @@ class UserInfo(models.Model):
 
     def __str__(self):
         return self.name
+
+class User(models.Model):
+    name = models.CharField(max_length=100)
+    place = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=15)

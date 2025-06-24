@@ -115,4 +115,18 @@ def get_users(request):
     serializer = UserInfoSerializer(users, many=True)
     return Response(serializer.data)
 
+from .models import User
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+
+@api_view(['GET'])
+def create_sample_users(request):
+    if not User.objects.exists():
+        User.objects.create(name="Bhargav", place="Hyderabad", phone_number="9876543210")
+        User.objects.create(name="Mani", place="Hyderabad", phone_number="9876543212")
+        User.objects.create(name="Harish", place="Hyderabad", phone_number="9876003212")
+        User.objects.create(name="Gupta", place="Kaikalur", phone_number="9872303212")
+        User.objects.create(name="Jeevitha", place="Kurnool", phone_number="9870453210")
+        return Response({"message": "Sample users added"})
+    return Response({"message": "Users already exist"})
 
