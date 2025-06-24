@@ -7,7 +7,7 @@ urlpatterns = [
     path('api/forecast/', views.forecast_api, name='forecast_api'),
     path('api/add_user/', views.add_user, name='add_user'),
     path('api/get_users/', views.get_users, name='get_users'),
-        path('create_users/',views.create_sample_users, name='create_sample_users'),
+    path('api/create_sample_users/', create_sample_users, name='create_users'),
 
 ]
 
