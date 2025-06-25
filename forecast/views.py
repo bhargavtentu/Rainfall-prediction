@@ -146,7 +146,7 @@ def forecast_api(request):
             plt.savefig(full_path, format='png')
 
             # Serve URL
-            chart_url = f"https://your-render-app.onrender.com/static/forecast/charts/{filename}"
+            chart_url = f"https://rainfall-prediction-477m.onrender.com/static/forecast/charts/{filename}"
             return JsonResponse({
                 "result": result,
                 "chart_url": chart_url
