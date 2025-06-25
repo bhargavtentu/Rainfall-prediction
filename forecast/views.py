@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import joblib
+import uuid 
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -61,12 +62,14 @@ def forecast_api(request):
             return JsonResponse({'error': 'Unauthorized'}, status=401)
 
         try:
+            import numpy as np  # ensure np is imported
+
             data = json.loads(request.body)
             query = data.get('query', '').strip()
             if not query:
                 return JsonResponse({"error": "Missing query field"}, status=400)
 
-            # Parse query first
+            # Parse query
             dates, horizon_type = parse_user_query(query)
             if dates is None or horizon_type is None:
                 return JsonResponse({
@@ -91,12 +94,12 @@ def forecast_api(request):
             # 🌧 Prediction
             result = predict_weather(query, prophet_model, clf_models, reg_models, farm_df, scaler)
 
-            # ✅ FEATURES
+            # ✅ Features
             X_clf_features = ['year', 'month', 'yhat', 'trend', 'tmin', 'inversedistance',
                               'windspeed', 'vaporpressure', 'humidity', 'prophet_residual',
                               'y_lag1', 'tmin_7d_mean']
 
-            # ✅ Generate DataFrame for plotting
+            # ✅ Generate DataFrame
             future_df = create_future_df(dates, farm_df, X_clf_features)
             future_forecast = prophet_model.predict(future_df[['ds']])
             future_forecast['ds'] = pd.to_datetime(future_forecast['ds']).dt.tz_localize(None)
@@ -109,8 +112,8 @@ def forecast_api(request):
 
             future_df['precipitation'] = future_df['yhat'].apply(lambda x: max(0, np.expm1(x)))
 
-            # ✅ Generate chart
-            def generate_chart(df, horizon):
+            # ✅ Generate Chart
+            def generate_chart(df, horizon, path):
                 fig, ax = plt.subplots(figsize=(10, 4))
                 df = df.dropna(subset=['ds', 'precipitation'])
 
@@ -131,24 +134,29 @@ def forecast_api(request):
                 ax.legend()
                 ax.grid(True)
                 plt.xticks(rotation=45)
-                buf = io.BytesIO()
                 plt.tight_layout()
-                plt.savefig(buf, format='png')
+                plt.savefig(path, format='png')
                 plt.close(fig)
-                buf.seek(0)
-                return base64.b64encode(buf.read()).decode('utf-8')
 
-            chart_base64 = generate_chart(future_df, horizon_type)
+            # ✅ Save chart to static directory
+            unique_id = uuid.uuid4().hex[:8]
+            filename = f"forecast_chart_{unique_id}.png"
+            chart_path = os.path.join('forecast', 'static', 'forecast', 'charts', filename)
+            full_path = os.path.join(base_dir, chart_path)
+            plt.savefig(full_path, format='png')
 
+            # Serve URL
+            chart_url = f"https://your-render-app.onrender.com/static/forecast/charts/{filename}"
             return JsonResponse({
                 "result": result,
-                "chart_base64": chart_base64
+                "chart_url": chart_url
             }, status=200)
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Only POST allowed"}, status=405)
+
 
 # ✅ API: Add user
 @api_view(['POST'])
