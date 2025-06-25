@@ -36,6 +36,9 @@ def parse_user_query(query):
 
 def create_future_df(dates, farm_df, X_clf_features=None):
     """Creates a DataFrame for future predictions."""
+    if X_clf_features is None:
+        X_clf_features = []  # Fix: prevent NoneType iteration error
+
     future_df = pd.DataFrame({'ds': dates})
     recent_data = farm_df[farm_df['ds'] >= farm_df['ds'].max() - timedelta(days=30)]
     for col in ['tmin', 'inversedistance', 'windspeed', 'vaporpressure', 'humidity']:
@@ -93,11 +96,11 @@ def generate_forecast_output(predictions_df, horizon_type):
     else:
         return "Unable to determine forecast horizon."
 
+
 def predict_weather(query, prophet_model, clf_models, reg_models, farm_df, scaler=None):
-    """Predicts weather based on user query using pre-trained models."""
     dates, horizon_type = parse_user_query(query)
-    if dates is None:
-        return "Invalid query. Please specify a time range like 'next week', 'month', or 'year'."
+    if dates is None or horizon_type is None or not len(dates):
+        raise ValueError("Invalid or unsupported query. Try 'next week', 'month', or 'year'.")
 
     # Define features
     X_clf_features = ['year', 'month', 'yhat', 'trend', 'tmin', 'inversedistance', 'windspeed',
