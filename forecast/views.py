@@ -154,7 +154,7 @@ def forecast_api(request):
             generate_chart(future_df, horizon_type, full_path)
 
             # Public URL
-           chart_url = f"https://rainfall-prediction-477m.onrender.com/static/forecast/charts/{filename}"
+            chart_url = f"https://rainfall-prediction-477m.onrender.com/static/forecast/charts/{filename}"
 
             return JsonResponse({
                 "result": result,
