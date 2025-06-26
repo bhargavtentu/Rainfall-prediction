@@ -9,9 +9,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import joblib
 import uuid 
-from django.conf import settings
 import os
-BASE_DIR = settings.BASE_DIR
+
+from django.conf import settings
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -22,7 +22,6 @@ from .models import UserInfo
 from .serializers import UserInfoSerializer
 from .utils.utils import predict_weather, parse_user_query, create_future_df
 
-
 # ✅ Web Page View
 def index(request):
     return render(request, 'copilot.html')
@@ -32,7 +31,7 @@ def index(request):
 def forecast(request):
     if request.method == 'POST':
         query = request.POST.get('query', '')
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        base_dir = settings.BASE_DIR
         farm_df = pd.read_excel(os.path.join(base_dir, 'forecast', 'data', 'pluvial_farm_singleID_cleaned.xlsx'))
         farm_df['ds'] = pd.to_datetime(farm_df['Date']).dt.tz_localize(None)
         farm_df = farm_df.rename(columns={'precipitation': 'y'})
@@ -58,7 +57,6 @@ def forecast(request):
 @csrf_exempt
 def forecast_api(request):
     if request.method == 'POST':
-        # Authorization check
         auth_header = request.headers.get('Authorization', '')
         expected_token = 'Bearer abc123xyz'
 
@@ -66,21 +64,18 @@ def forecast_api(request):
             return JsonResponse({'error': 'Unauthorized'}, status=401)
 
         try:
-            # ✅ Load request
             data = json.loads(request.body)
             query = data.get('query', '').strip()
             if not query:
                 return JsonResponse({"error": "Missing query field"}, status=400)
 
-            # ✅ Parse query
             dates, horizon_type = parse_user_query(query)
             if dates is None or horizon_type is None:
                 return JsonResponse({
                     "error": "Invalid query. Use phrases like 'next week', 'month', or 'year'."
                 }, status=400)
 
-            # ✅ Load models and data
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            base_dir = settings.BASE_DIR
             farm_df = pd.read_excel(os.path.join(base_dir, 'forecast', 'data', 'pluvial_farm_singleID_cleaned.xlsx'))
             farm_df['ds'] = pd.to_datetime(farm_df['Date']).dt.tz_localize(None)
             farm_df = farm_df.rename(columns={'precipitation': 'y'})
@@ -94,10 +89,8 @@ def forecast_api(request):
             reg_models = joblib.load(os.path.join(base_dir, 'forecast', 'models', 'reg_models.pkl'))
             scaler = joblib.load(os.path.join(base_dir, 'forecast', 'models', 'scaler.pkl'))
 
-            # ✅ Make prediction
             result = predict_weather(query, prophet_model, clf_models, reg_models, farm_df, scaler)
 
-            # ✅ Generate DataFrame
             X_clf_features = ['year', 'month', 'yhat', 'trend', 'tmin', 'inversedistance',
                               'windspeed', 'vaporpressure', 'humidity', 'prophet_residual',
                               'y_lag1', 'tmin_7d_mean']
@@ -114,19 +107,14 @@ def forecast_api(request):
 
             future_df['precipitation'] = future_df['yhat'].apply(lambda x: max(0, np.expm1(x)))
 
-            # ✅ Chart generation
             def generate_chart(df, horizon, path):
                 fig, ax = plt.subplots(figsize=(10, 4))
                 df = df.dropna(subset=['ds', 'precipitation'])
-
                 if df.empty:
-                    print("⚠️ No data to plot.")
                     return
-
                 if df['precipitation'].max() == 0:
                     df['precipitation'] += 0.01
                     ax.set_ylim(0, 0.02)
-
                 if horizon == "short":
                     ax.plot(df['ds'], df['precipitation'], marker='o', label='Rainfall (mm)')
                     ax.set_title('Rainfall Forecast (Daily)')
@@ -138,7 +126,6 @@ def forecast_api(request):
                     ax.plot(df['ds'], df['precipitation'], marker='s', linestyle='-', label='Monthly Rainfall')
                     ax.fill_between(df['ds'], df['yhat_lower'], df['yhat_upper'], alpha=0.3, color='gray', label='Confidence Interval')
                     ax.set_title('Rainfall Forecast (Monthly)')
-
                 ax.set_xlabel('Date')
                 ax.set_ylabel('Precipitation (mm)')
                 ax.legend()
@@ -148,27 +135,21 @@ def forecast_api(request):
                 plt.savefig(path, format='png')
                 plt.close(fig)
 
-            # ✅ Save chart
             charts_dir = os.path.join(settings.MEDIA_ROOT, 'charts')
             os.makedirs(charts_dir, exist_ok=True)
-
             filename = f"forecast_chart_{uuid.uuid4().hex[:8]}.png"
             full_path = os.path.join(charts_dir, filename)
-
             generate_chart(future_df, horizon_type, full_path)
 
             chart_url = f"{request.scheme}://{request.get_host()}/media/charts/{filename}"
-            return JsonResponse({
-                "result": result,
-                "chart_url": chart_url
-            }, status=200)
+            return JsonResponse({"result": result, "chart_url": chart_url}, status=200)
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Only POST allowed"}, status=405)
 
-# ✅ API: Add user
+
 @api_view(['POST'])
 def add_user(request):
     serializer = UserInfoSerializer(data=request.data)
@@ -178,7 +159,6 @@ def add_user(request):
     return Response(serializer.errors, status=400)
 
 
-# ✅ API: Get users
 @api_view(['GET'])
 def get_users(request):
     auth_header = request.headers.get('Authorization', '')
@@ -194,7 +174,6 @@ def get_users(request):
     return Response(serializer.data)
 
 
-# ✅ API: Create Sample Users
 @api_view(['GET'])
 def create_sample_users(request):
     if not UserInfo.objects.exists():
