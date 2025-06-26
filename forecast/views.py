@@ -5,6 +5,8 @@ import json
 import base64
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import joblib
 import uuid 
@@ -62,21 +64,20 @@ def forecast_api(request):
             return JsonResponse({'error': 'Unauthorized'}, status=401)
 
         try:
-            import numpy as np  # ensure np is imported
-
+            # ✅ Load request
             data = json.loads(request.body)
             query = data.get('query', '').strip()
             if not query:
                 return JsonResponse({"error": "Missing query field"}, status=400)
 
-            # Parse query
+            # ✅ Parse query
             dates, horizon_type = parse_user_query(query)
             if dates is None or horizon_type is None:
                 return JsonResponse({
                     "error": "Invalid query. Use phrases like 'next week', 'month', or 'year'."
                 }, status=400)
 
-            # Load models and data
+            # ✅ Load models and data
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             farm_df = pd.read_excel(os.path.join(base_dir, 'forecast', 'data', 'pluvial_farm_singleID_cleaned.xlsx'))
             farm_df['ds'] = pd.to_datetime(farm_df['Date']).dt.tz_localize(None)
@@ -91,15 +92,14 @@ def forecast_api(request):
             reg_models = joblib.load(os.path.join(base_dir, 'forecast', 'models', 'reg_models.pkl'))
             scaler = joblib.load(os.path.join(base_dir, 'forecast', 'models', 'scaler.pkl'))
 
-            # 🌧 Prediction
+            # ✅ Make prediction
             result = predict_weather(query, prophet_model, clf_models, reg_models, farm_df, scaler)
 
-            # ✅ Features
+            # ✅ Generate DataFrame
             X_clf_features = ['year', 'month', 'yhat', 'trend', 'tmin', 'inversedistance',
                               'windspeed', 'vaporpressure', 'humidity', 'prophet_residual',
                               'y_lag1', 'tmin_7d_mean']
 
-            # ✅ Generate DataFrame
             future_df = create_future_df(dates, farm_df, X_clf_features)
             future_forecast = prophet_model.predict(future_df[['ds']])
             future_forecast['ds'] = pd.to_datetime(future_forecast['ds']).dt.tz_localize(None)
@@ -112,10 +112,18 @@ def forecast_api(request):
 
             future_df['precipitation'] = future_df['yhat'].apply(lambda x: max(0, np.expm1(x)))
 
-            # ✅ Generate Chart
+            # ✅ Chart generation
             def generate_chart(df, horizon, path):
                 fig, ax = plt.subplots(figsize=(10, 4))
                 df = df.dropna(subset=['ds', 'precipitation'])
+
+                if df.empty:
+                    print("⚠️ No data to plot.")
+                    return
+
+                if df['precipitation'].max() == 0:
+                    df['precipitation'] += 0.01
+                    ax.set_ylim(0, 0.02)
 
                 if horizon == "short":
                     ax.plot(df['ds'], df['precipitation'], marker='o', label='Rainfall (mm)')
@@ -138,15 +146,16 @@ def forecast_api(request):
                 plt.savefig(path, format='png')
                 plt.close(fig)
 
-            # ✅ Save chart to static directory
-            unique_id = uuid.uuid4().hex[:8]
-            filename = f"forecast_chart_{unique_id}.png"
-            chart_path = os.path.join('forecast', 'static', 'forecast', 'charts', filename)
-            full_path = os.path.join(base_dir, chart_path)
-            plt.savefig(full_path, format='png')
+            # ✅ Save chart
+            charts_dir = os.path.join(BASE_DIR, 'forecast', 'static', 'forecast', 'charts')
+            os.makedirs(charts_dir, exist_ok=True)
+            filename = f"forecast_chart_{uuid.uuid4().hex[:8]}.png"
+            full_path = os.path.join(charts_dir, filename)
+            generate_chart(future_df, horizon_type, full_path)
 
-            # Serve URL
-            chart_url = f"https://rainfall-prediction-477m.onrender.com/static/forecast/charts/{filename}"
+            # Public URL
+           chart_url = f"https://rainfall-prediction-477m.onrender.com/static/forecast/charts/{filename}"
+
             return JsonResponse({
                 "result": result,
                 "chart_url": chart_url
@@ -156,7 +165,6 @@ def forecast_api(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Only POST allowed"}, status=405)
-
 
 # ✅ API: Add user
 @api_view(['POST'])
