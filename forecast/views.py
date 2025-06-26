@@ -149,15 +149,18 @@ def forecast_api(request):
                 plt.close(fig)
 
             # ✅ Save chart
-            charts_dir = os.path.join(BASE_DIR, 'forecast', 'static', 'forecast', 'charts')
+            # Save the chart inside STATIC_ROOT/charts so it's served by Render too
+            charts_dir = os.path.join(settings.STATIC_ROOT, 'charts')
             os.makedirs(charts_dir, exist_ok=True)
+
             filename = f"forecast_chart_{uuid.uuid4().hex[:8]}.png"
             full_path = os.path.join(charts_dir, filename)
+
+            # Save the chart
             generate_chart(future_df, horizon_type, full_path)
 
-            # Public URL
-            chart_url = f"https://rainfall-prediction-477m.onrender.com/static/forecast/charts/{filename}"
-
+            # Build a public URL
+            chart_url = f"https://rainfall-prediction-477m.onrender.com/static/charts/{filename}"
             return JsonResponse({
                 "result": result,
                 "chart_url": chart_url
