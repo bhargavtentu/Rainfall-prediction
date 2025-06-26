@@ -24,7 +24,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", include("forecast.urls")),
 ]
+
+# ✅ Serve media (chart images) ALWAYS
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# ✅ Serve static ONLY in development (DEBUG = True)
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=os.path.join(settings.BASE_DIR, 'static'))
-    # ✅ Serve media files (charts and uploads)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
