@@ -1,5 +1,4 @@
 # ✅ All imports at top
-import os
 import io
 import json
 import base64
@@ -10,6 +9,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import joblib
 import uuid 
+from django.conf import settings
+import os
+BASE_DIR = settings.BASE_DIR
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
