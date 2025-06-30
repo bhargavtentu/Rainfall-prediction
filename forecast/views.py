@@ -140,19 +140,20 @@ def forecast_api(request):
             filename = f"forecast_chart_{uuid.uuid4().hex[:8]}.png"
             full_path = os.path.join(charts_dir, filename)
             generate_chart(future_df, horizon_type, full_path)
-            print(f"Chart saved at: {full_path}")
-            print(f"Files in {charts_dir}: {os.listdir(charts_dir)}")
-
-
 
             chart_url = f"{request.scheme}://{request.get_host()}/media/charts/{filename}"
-            return JsonResponse({"result": result, "chart_url": chart_url}, status=200)
+            image_markdown = f"![Rainfall Chart]({chart_url})"
+
+            return JsonResponse({
+                "result": result,
+                "chart_url": chart_url,
+                "image_markdown": image_markdown
+            }, status=200)
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Only POST allowed"}, status=405)
-
 
 @api_view(['POST'])
 def add_user(request):
@@ -189,10 +190,3 @@ def create_sample_users(request):
         return Response({"message": "Sample users added"})
     return Response({"message": "Users already exist"})
 
-@api_view(['GET'])
-def list_charts(request):
-    charts_dir = os.path.join(settings.MEDIA_ROOT, 'charts')
-    if os.path.exists(charts_dir):
-        files = os.listdir(charts_dir)
-        return JsonResponse({"files": files})
-    return JsonResponse({"error": "charts folder not found"}, status=404)

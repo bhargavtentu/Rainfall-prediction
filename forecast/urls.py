@@ -8,7 +8,7 @@ urlpatterns = [
     path('api/add_user/', views.add_user, name='add_user'),
     path('api/get_users/', views.get_users, name='get_users'),
     path('api/create_sample_users/', views.create_sample_users, name='create_users'),
-    path('api/list_charts/',views.list_charts,name='list_charts'),
+   
 
 ]
 
