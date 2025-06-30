@@ -89,7 +89,7 @@ def forecast_api(request):
             reg_models = joblib.load(os.path.join(base_dir, 'forecast', 'models', 'reg_models.pkl'))
             scaler = joblib.load(os.path.join(base_dir, 'forecast', 'models', 'scaler.pkl'))
 
-            result = predict_weather(query, prophet_model, clf_models, reg_models, farm_df, scaler)
+            result_text = predict_weather(query, prophet_model, clf_models, reg_models, farm_df, scaler)
 
             X_clf_features = ['year', 'month', 'yhat', 'trend', 'tmin', 'inversedistance',
                               'windspeed', 'vaporpressure', 'humidity', 'prophet_residual',
@@ -142,12 +142,19 @@ def forecast_api(request):
             generate_chart(future_df, horizon_type, full_path)
 
             chart_url = f"{request.scheme}://{request.get_host()}/media/charts/{filename}"
-            image_markdown = f"![Rainfall Chart]({chart_url})"
+
+            # 🌟 Final markdown-style output for chatbot
+            markdown_result = (
+                f"🌧️ **Rainfall Forecast ({horizon_type.capitalize()})**\n\n"
+                f"{result_text}\n\n"
+                f"🖼️ **Rainfall Forecast Chart**\n\n"
+                f"![Rainfall Chart]({chart_url})\n\n"
+                f"🔍 [View full-size chart]({chart_url})"
+            )
 
             return JsonResponse({
-                "result": result,
-                "chart_url": chart_url,
-                "image_markdown": image_markdown
+                "result": markdown_result,
+                "chart_url": chart_url
             }, status=200)
 
         except Exception as e:
