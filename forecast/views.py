@@ -168,13 +168,36 @@ def forecast_api(request):
             generate_chart(future_df, horizon_type, full_path)
 
             chart_url = f"{request.scheme}://{request.get_host()}/media/charts/{filename}"
-            image_markdown = f"![Rainfall Chart]({chart_url})"
+            # 🌧️ Format the prediction result text line by line
+            if isinstance(result, str):
+                result_lines = result.strip().split('\n')
+            else:
+                result_lines = [str(result)]  # fallback if it's not a string
+
+            formatted_result = "\n".join(result_lines)
+
+            # 🔧 Capitalize "short" → "Next Week", etc.
+            horizon_label = {
+                "short": "Next Week",
+                "medium": "Next Month",
+                "long": "Next Year"
+            }.get(horizon_type, horizon_type.capitalize())
+
+            # 🌟 Final Markdown-style response
+            markdown_output = (
+                f"🌧️ **Rainfall Forecast ({horizon_label})**\n\n"
+                f"{formatted_result}\n\n"
+                f" **Rainfall Forecast Chart**\n\n"
+                f"![Rainfall Chart]({chart_url})\n\n"
+                f"🔍 [View full-size chart]({chart_url})"
+            )
 
             return JsonResponse({
                 "result": result,
                 "chart_url": chart_url,
-                "image_markdown": image_markdown
+                "markdown": markdown_output
             }, status=200)
+
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
