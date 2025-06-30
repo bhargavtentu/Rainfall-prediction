@@ -89,7 +89,7 @@ def forecast_api(request):
             reg_models = joblib.load(os.path.join(base_dir, 'forecast', 'models', 'reg_models.pkl'))
             scaler = joblib.load(os.path.join(base_dir, 'forecast', 'models', 'scaler.pkl'))
 
-            result_text = predict_weather(query, prophet_model, clf_models, reg_models, farm_df, scaler)
+            result = predict_weather(query, prophet_model, clf_models, reg_models, farm_df, scaler)
 
             X_clf_features = ['year', 'month', 'yhat', 'trend', 'tmin', 'inversedistance',
                               'windspeed', 'vaporpressure', 'humidity', 'prophet_residual',
@@ -108,32 +108,58 @@ def forecast_api(request):
             future_df['precipitation'] = future_df['yhat'].apply(lambda x: max(0, np.expm1(x)))
 
             def generate_chart(df, horizon, path):
-                fig, ax = plt.subplots(figsize=(10, 4))
-                df = df.dropna(subset=['ds', 'precipitation'])
+                import matplotlib.pyplot as plt
+                import pandas as pd
+
+                df = df.dropna(subset=['ds', 'precipitation', 'yhat_lower', 'yhat_upper'])
+                df['ds'] = pd.to_datetime(df['ds'])
                 if df.empty:
+                    print(f"No data to plot for: {horizon}")
                     return
-                if df['precipitation'].max() == 0:
-                    df['precipitation'] += 0.01
-                    ax.set_ylim(0, 0.02)
+
+                fig, ax = plt.subplots(figsize=(10, 4))
+
                 if horizon == "short":
-                    ax.plot(df['ds'], df['precipitation'], marker='o', label='Rainfall (mm)')
-                    ax.set_title('Rainfall Forecast (Daily)')
-                elif horizon == "medium":
-                    ax.bar(df['ds'].dt.strftime('%Y-%m-%d'), df['precipitation'], color='skyblue')
-                    ax.set_title('Rainfall Forecast (Weekly)')
-                elif horizon == "long":
-                    df = df.dropna(subset=['yhat_lower', 'yhat_upper'])
-                    ax.plot(df['ds'], df['precipitation'], marker='s', linestyle='-', label='Monthly Rainfall')
+                    ax.plot(df['ds'], df['precipitation'], marker='o', linestyle='-', label='Rainfall (mm)')
                     ax.fill_between(df['ds'], df['yhat_lower'], df['yhat_upper'], alpha=0.3, color='gray', label='Confidence Interval')
+                    ax.set_title('Rainfall Forecast (Daily)')
+
+                elif horizon == "medium":
+                    df_weekly = df.set_index('ds').resample('W').agg(
+                        precipitation=('precipitation', 'sum'),
+                        yhat_lower=('yhat_lower', 'sum'),
+                        yhat_upper=('yhat_upper', 'sum')
+                    ).reset_index()
+
+                    ax.plot(df_weekly['ds'], df_weekly['precipitation'], marker='o', linestyle='-', label='Weekly Rainfall')
+                    ax.fill_between(df_weekly['ds'], df_weekly['yhat_lower'], df_weekly['yhat_upper'], alpha=0.3, color='gray', label='Confidence Interval')
+                    ax.set_title('Rainfall Forecast (Weekly)')
+
+                elif horizon == "long":
+                    df_monthly = df.set_index('ds').resample('M').agg(
+                        precipitation=('precipitation', 'sum'),
+                        yhat_lower=('yhat_lower', 'sum'),
+                        yhat_upper=('yhat_upper', 'sum')
+                    ).reset_index()
+
+                    ax.plot(df_monthly['ds'], df_monthly['precipitation'], marker='s', linestyle='-', label='Monthly Rainfall')
+                    ax.fill_between(df_monthly['ds'], df_monthly['yhat_lower'], df_monthly['yhat_upper'], alpha=0.3, color='gray', label='Confidence Interval')
                     ax.set_title('Rainfall Forecast (Monthly)')
+
+                else:
+                    print("Invalid horizon type")
+                    plt.close(fig)
+                    return
+
                 ax.set_xlabel('Date')
                 ax.set_ylabel('Precipitation (mm)')
+                ax.tick_params(axis='x', rotation=45)
                 ax.legend()
                 ax.grid(True)
-                plt.xticks(rotation=45)
                 plt.tight_layout()
                 plt.savefig(path, format='png')
                 plt.close(fig)
+
 
             charts_dir = os.path.join(settings.MEDIA_ROOT, 'charts')
             os.makedirs(charts_dir, exist_ok=True)
@@ -142,19 +168,12 @@ def forecast_api(request):
             generate_chart(future_df, horizon_type, full_path)
 
             chart_url = f"{request.scheme}://{request.get_host()}/media/charts/{filename}"
-
-            # 🌟 Final markdown-style output for chatbot
-            markdown_result = (
-                f"🌧️ **Rainfall Forecast ({horizon_type.capitalize()})**\n\n"
-                f"{result_text}\n\n"
-                f"🖼️ **Rainfall Forecast Chart**\n\n"
-                f"![Rainfall Chart]({chart_url})\n\n"
-                f"🔍 [View full-size chart]({chart_url})"
-            )
+            image_markdown = f"![Rainfall Chart]({chart_url})"
 
             return JsonResponse({
-                "result": markdown_result,
-                "chart_url": chart_url
+                "result": result,
+                "chart_url": chart_url,
+                "image_markdown": image_markdown
             }, status=200)
 
         except Exception as e:
