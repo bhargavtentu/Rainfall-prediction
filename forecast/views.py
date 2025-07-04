@@ -53,7 +53,6 @@ def forecast(request):
     return render(request, 'index.html')
 
 
-# ✅ JSON API Endpoint with Graph
 @csrf_exempt
 def forecast_api(request):
     if request.method == 'POST':
@@ -176,14 +175,14 @@ def forecast_api(request):
 
             formatted_result = "\n".join(result_lines)
 
-            # 🔧 Capitalize "short" → "Next Week", etc.
+            
             horizon_label = {
                 "short": "Next Week",
                 "medium": "Next Month",
                 "long": "Next Year"
             }.get(horizon_type, horizon_type.capitalize())
 
-            # 🌟 Final Markdown-style response
+            
             markdown_output = (
                 f"🌧️ **Rainfall Forecast ({horizon_label})**\n\n"
                 f"{formatted_result}\n\n"

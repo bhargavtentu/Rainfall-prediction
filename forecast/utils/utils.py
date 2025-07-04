@@ -60,10 +60,10 @@ def generate_forecast_output(predictions_df, horizon_type):
         # Daily rain chance and amount
         results = []
         for _, row in predictions_df.iterrows():
-            chance = row['rain_probability'] * 100
+            # chance = row['rain_probability'] * 100
             # Use 'precipitation' column which is already the final un-transformed value
             amount = row['precipitation']
-            results.append(f"{row['ds'].date()}: {chance:.1f}% chance of rain, {amount:.2f} mm expected")
+            results.append(f"{row['ds'].date()}: {amount:.2f} mm expected")
         return "\n".join(results)
 
     elif horizon_type == "medium":

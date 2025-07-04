@@ -2,45 +2,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Forecast App</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather Forecast App</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
-    <!-- Navbar -->
-    <nav class="bg-blue-600 p-4 shadow-md">
-        <div class="container mx-auto">
-            <a href="{% url 'index' %}" class="text-white text-2xl font-semibold">
-                Weather Forecast App
-            </a>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto mt-8 px-4">
-        {% block content %}
-        {% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-blue-600 text-white text-center py-4">
-        &copy; {{ year }} Weather Forecast. All rights reserved.
-    </footer>
-
-    <!-- Microsoft Copilot Chat Iframe (Smaller Version) -->
-    <div class="fixed bottom-3 right-4 w-[300px] h-[400px] shadow-lg border border-gray-300 rounded-lg overflow-hidden z-50">
-         <iframe 
-    src="https://copilotstudio.microsoft.com/environments/441040f4-3d01-e21a-8410-79808681d315/bots/cr7d8_testAgent/webchat?__version__=2" 
-    style="position: fixed; bottom: 20px; right: 20px; width: 280px; height: 400px; border: none; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.2); z-index: 1000;">
-   </iframe>
+  <!-- Navbar -->
+  <nav class="bg-blue-600 p-4 shadow-md">
+    <div class="container mx-auto">
+      <a href="{% url 'index' %}" class="text-white text-2xl font-semibold">
+        Weather Forecast App
+      </a>
     </div>
+  </nav>
 
+  <!-- Main Content -->
+  <main class="flex-grow container mx-auto mt-8 px-4">
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-blue-600 text-white text-center py-4">
+    &copy; {{ year }} Weather Forecast. All rights reserved.
+  </footer>
+
+  <!-- 💬 Copilot Chat Wrapper -->
+  <div id="copilot-wrapper" class="fixed bottom-20 right-4 w-[300px] h-[400px] z-50 hidden">
+    <iframe 
+      id="copilot-frame"
+      src="https://copilotstudio.microsoft.com/environments/441040f4-3d01-e21a-8410-79808681d315/bots/cr7d8_testAgent/webchat?__version__=2" 
+      style="width: 100%; height: 100%; border: none; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+    </iframe>
+  </div>
+
+  <!-- 💬 Open Bot Button -->
+<button id="open-bot-btn"
+  class="fixed right-4 text-white px-4 py-2 rounded-full shadow-md z-50"
+  style="margin-top: 350px; background-color: #0B556A;">
+  💬 Chat with Agent
+</button>
+
+  <!-- ❌ Close Bot Button -->
+  
+  <button id="close-bot-btn"
+  class="fixed bottom-[440px] right-4 px-3 py-1 z-50 hidden">
+  ✖
+</button>
+
+
+  <!-- 🔧 Toggle Script -->
+  <script>
+    const wrapper = document.getElementById('copilot-wrapper');
+    const openBtn = document.getElementById('open-bot-btn');
+    const closeBtn = document.getElementById('close-bot-btn');
+
+    openBtn.addEventListener('click', () => {
+      wrapper.classList.remove('hidden');
+      openBtn.classList.add('hidden');
+      closeBtn.classList.remove('hidden');
+    });
+
+    closeBtn.addEventListener('click', () => {
+      wrapper.classList.add('hidden');
+      openBtn.classList.remove('hidden');
+      closeBtn.classList.add('hidden');
+    });
+  </script>
 </body>
 </html>
