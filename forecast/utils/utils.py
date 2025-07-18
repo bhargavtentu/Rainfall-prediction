@@ -86,11 +86,6 @@ def generate_forecast_output(predictions_df, horizon_type):
         # Assuming predictions_df already has monthly intervals as per parse_user_query(freq='ME')
         for i, row in predictions_df.iterrows():
             output.append(f"  Month ending {row['ds'].date()}: {row['precipitation']:.2f} mm")
-        # Prophet's base forecast and confidence range (log-transformed sums)
-        output.append(f"\nProphet's total baseline forecast (sum of monthly log-transformed yhat): {predictions_df['yhat'].sum():.2f}")
-        # The sum of daily confidence interval widths, also log-transformed
-        conf_range_sum_diff = (predictions_df['yhat_upper'] - predictions_df['yhat_lower']).sum()
-        output.append(f"Sum of monthly forecast confidence range (log-transformed): ±{conf_range_sum_diff:.2f}")
         return "\n".join(output)
 
     else:

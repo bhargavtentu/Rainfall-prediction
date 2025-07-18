@@ -168,13 +168,17 @@ def forecast_api(request):
 
             chart_url = f"{request.scheme}://{request.get_host()}/media/charts/{filename}"
             # 🌧️ Format the prediction result text line by line
+            import re
+
             if isinstance(result, str):
-                result_lines = result.strip().split('\n')
+                # Extract lines like: 2025-07-18: 0.00 mm expected
+                result_lines = re.findall(r'\d{4}-\d{2}-\d{2}:.*?expected', result)
+                if not result_lines:
+                    result_lines = [result.strip()]  # fallback to original
             else:
-                result_lines = [str(result)]  # fallback if it's not a string
+                result_lines = [str(result)]
 
             formatted_result = "\n".join(result_lines)
-
             
             horizon_label = {
                 "short": "Next Week",
