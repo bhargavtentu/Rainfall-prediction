@@ -178,7 +178,7 @@ def forecast_api(request):
             else:
                 result_lines = [str(result)]
 
-            formatted_result = "\n".join(result_lines)
+            formatted_result = "<br>".join(result_lines)
             
             horizon_label = {
                 "short": "Next Week",
@@ -188,12 +188,13 @@ def forecast_api(request):
 
             
             markdown_output = (
-                f"🌧️ **Rainfall Forecast ({horizon_label})**\n\n"
-                f"{formatted_result}\n\n"
-                f" **Rainfall Forecast Chart**\n\n"
-                f"![Rainfall Chart]({chart_url})\n\n"
-                f"🔍 [View full-size chart]({chart_url})"
+                f"🌧️ <b>Rainfall Forecast ({horizon_label})</b><br><br>"
+                f"{formatted_result}<br><br>"
+                f"<b>Rainfall Forecast Chart</b><br><br>"
+                f"<img src='{chart_url}' alt='Rainfall Chart' width='100%'><br>"
+                f"🔍 <a href='{chart_url}' target='_blank'>View full-size chart</a>"
             )
+
 
             return JsonResponse({
                 "result": result,
