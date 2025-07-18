@@ -5,26 +5,188 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Forecast</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-blue-600 p-4">
-        <div class="container mx-auto">
-            <a href="{% url 'index' %}" class="text-white text-xl font-bold">Weather Forecast App</a>
+<body>
+    <nav>
+        <div class="container">
+            <a href="{% url 'index' %}">Weather Forecast App</a>
         </div>
     </nav>
-
-    <div class="container mx-auto mt-8">
+    <div class="container" style="margin-top: 2rem;">
         {% block content %}
         {% endblock %}
     </div>
+    
+    <!-- Custom Chatbot -->
+    <div id="chatbot-container" class="chatbot-container">
+        <!-- Header -->
+        <div class="chatbot-header">
+            <h3 class="chatbot-title">Test agent</h3>
+            <button class="chatbot-close" id="chatbot-close">✕</button>
+        </div>
 
-    <!-- Microsoft Copilot Chat Iframe -->
-   <iframe 
-    src="https://copilotstudio.microsoft.com/environments/441040f4-3d01-e21a-8410-79808681d315/bots/cr7d8_testAgent/webchat?__version__=2" 
-    style="position: fixed; bottom: 20px; right: 20px; width: 280px; height: 400px; border: none; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.2); z-index: 1000;">
-   </iframe>
+        <!-- Messages Area -->
+        <div class="chatbot-messages" id="chatbot-messages">
+            <div class="message bot">
+                Hello, I'm Test agent, a virtual assistant. Just so you are aware, I sometimes use AI to answer your questions. If you provided a website during creation, try asking me about it! Next try giving me some more knowledge by setting up generative AI.
+                <div class="message-time">Just now</div>
+            </div>
+        </div>
 
+        <!-- Input Area -->
+        <div class="chatbot-input-area">
+            <textarea 
+                class="chatbot-input" 
+                id="chatbot-input" 
+                placeholder="Type your message"
+                rows="1"
+                maxlength="2000"></textarea>
+            <div class="char-count">
+                <span id="char-count">0</span>/2000
+            </div>
+            <button class="chatbot-send" id="chatbot-send">
+                ➤
+            </button>
+        </div>
+    </div>
+
+    <!-- Open Bot Button -->
+    <button class="open-bot-btn" id="open-bot-btn">
+        💬 Chat with Agent
+    </button>
+
+    <script>
+        // DOM Elements
+        const chatbotContainer = document.getElementById('chatbot-container');
+        const openBotBtn = document.getElementById('open-bot-btn');
+        const closeBotBtn = document.getElementById('chatbot-close');
+        const chatbotInput = document.getElementById('chatbot-input');
+        const chatbotSend = document.getElementById('chatbot-send');
+        const chatbotMessages = document.getElementById('chatbot-messages');
+        const charCount = document.getElementById('char-count');
+
+        // Open chatbot
+        openBotBtn.addEventListener('click', () => {
+            chatbotContainer.classList.add('show');
+            openBotBtn.classList.add('hidden');
+            chatbotInput.focus();
+        });
+
+        // Close chatbot
+        closeBotBtn.addEventListener('click', () => {
+            chatbotContainer.classList.remove('show');
+            openBotBtn.classList.remove('hidden');
+        });
+
+        // Handle input
+        chatbotInput.addEventListener('input', (e) => {
+            const length = e.target.value.length;
+            charCount.textContent = length;
+            
+            // Auto-resize textarea
+            e.target.style.height = 'auto';
+            e.target.style.height = Math.min(e.target.scrollHeight, 80) + 'px';
+            
+            // Enable/disable send button
+            chatbotSend.disabled = length === 0;
+        });
+
+        // Send message on Enter (but not Shift+Enter)
+        chatbotInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Send message on button click
+        chatbotSend.addEventListener('click', sendMessage);
+
+        // Send message function
+        function sendMessage() {
+            const message = chatbotInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            
+            // Clear input
+            chatbotInput.value = '';
+            chatbotInput.style.height = 'auto';
+            charCount.textContent = '0';
+            chatbotSend.disabled = true;
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Simulate bot response
+            setTimeout(() => {
+                hideTypingIndicator();
+                addBotResponse(message);
+            }, 1000 + Math.random() * 2000);
+        }
+
+        // Add message to chat
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.innerHTML = `
+                ${text}
+                <div class="message-time">${timeString}</div>
+            `;
+            
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typing-indicator';
+            typingDiv.innerHTML = `
+                Test agent is typing
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            chatbotMessages.appendChild(typingDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Generate bot response
+        function addBotResponse(userMessage) {
+            const responses = [
+                "Thank you for your message! I'm here to help with weather-related questions.",
+                "I understand you're asking about weather. Let me help you with that information.",
+                "That's a great question! I can provide weather forecasts and related information.",
+                "I'm processing your request. Weather data is constantly updated in our system.",
+                "How can I assist you further with weather information for your location?"
+            ];
+            
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            addMessage(randomResponse, 'bot');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            chatbotSend.disabled = true;
+        });
+    </script>
 </body>
 </html>
